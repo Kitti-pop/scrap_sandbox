@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "814483355425",
+    "firebase_url": "https://scrap-sandbox.firebaseio.com",
+    "project_id": "scrap-sandbox",
+    "storage_bucket": "scrap-sandbox.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814483355425:android:f472fabaeccad4d1383060",
+        "android_client_info": {
+          "package_name": "com.sandbox.scrap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "814483355425-54o9efv8feuvs4qs7v73bo8a6uov2ll4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAv0htNQqK8zc-2hESiPnAaRY6uIZOjQWY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "814483355425-54o9efv8feuvs4qs7v73bo8a6uov2ll4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "814483355425-hr60urdcji9i08lb9no9h0s5f63ircpp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sandbox.scrap"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
