@@ -72,15 +72,13 @@ class AuthFunc {
     });
   }
 
-  Future<String> signUpWithPhone(
-    BuildContext context, {
-    @required String verificationId,
-    @required String smsCode,
-    @required String phone,
-    @required String region,
-    @required String password,
-    @required String pName,
-  }) async {
+  Future<String> signUpWithPhone(BuildContext context,
+      {@required String verificationId,
+      @required String smsCode,
+      @required String phone,
+      @required String region,
+      @required String password,
+      @required String pName}) async {
     String uid;
     var phoneCredent = PhoneAuthProvider.getCredential(
         verificationId: verificationId, smsCode: smsCode);

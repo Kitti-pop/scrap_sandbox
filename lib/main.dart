@@ -47,12 +47,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    getUid();
     super.initState();
   }
 
   getUid() async {
     var uid = await FirebaseAuth.instance.currentUser();
+    print(uid != null ? 'login' : 'not login');
     print(uid?.uid ?? 'nope');
   }
 
@@ -106,7 +106,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Text('Sign Out'),
                   onPressed: () {
                     auth.signOut();
-                  })
+                  }),
+              RaisedButton(
+                child: Text('check isLogin?'),
+                onPressed: getUid,
+              )
             ],
           ),
         ),
