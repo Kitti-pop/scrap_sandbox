@@ -25,6 +25,17 @@ dependencies:
   cupertino_icons: ^0.1.2
   cloud_firestore: ^0.13.4+2
   mapbox_search: ^2.0.0
+  flutter_map: ^0.8.2
+  map_controller: ^0.7.0
+  geoflutterfire: ^2.1.0
+  geolocator: ^5.2.1
+  rxdart: ^0.23.1
+  flutter_screenutil: ^1.1.0
+  intl: ^0.16.1
+  firebase_auth: ^0.15.4
+
+
+
 
 dev_dependencies:
   flutter_test:

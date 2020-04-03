@@ -22,6 +22,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Explaination While User App: "This app needs access to location when open and in the background, So you can see scraps around you."</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Explaination While User App: "This app needs access to location when in the background, So you can see scraps around you."</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Explaination While User App: "This app needs access to location when open, So you can see scraps around you."</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

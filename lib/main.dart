@@ -1,25 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:mapbox_search/mapbox_search.dart';
+import 'package:scrap_sandbox/authenPage/PhoneSumbit.dart';
+import 'package:scrap_sandbox/authenPage/signUp.dart';
+import 'package:scrap_sandbox/functions/authen.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
@@ -29,121 +24,140 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  String pName, password;
+  var auth = AuthFunc();
+  var _key = GlobalKey<FormState>();
+  DocumentSnapshot user;
+  var doc;
+  var ref2 = Firestore.instance
+      .collection('Scraps')
+      .document('TH')
+      .collection('indicators')
+      .orderBy('popularity.P');
   var geo = ReverseGeoCoding(
     apiKey:
         'pk.eyJ1Ijoic2NyYXAtZGV2IiwiYSI6ImNrN3psdGZnYzA1cmkzZG80YjgyenYzZXYifQ.mGLyQ9BgHoiaBVpJOkEw1g',
   );
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+
+  @override
+  void initState() {
+    getUid();
+    super.initState();
+  }
+
+  getUid() async {
+    var uid = await FirebaseAuth.instance.currentUser();
+    print(uid?.uid ?? 'nope');
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+        child: Form(
+          key: _key,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextFormField(
+                decoration: InputDecoration(hintText: 'Pen Name'),
+                onSaved: (val) {
+                  pName = val;
+                },
+              ),
+              TextFormField(
+                decoration: InputDecoration(hintText: 'Password'),
+                onSaved: (val) {
+                  password = val;
+                },
+              ),
+              RaisedButton(
+                  child: Text('Sign In'),
+                  onPressed: () async {
+                    _key.currentState.save();
+                    await hasAccount()
+                        ? signIn()
+                        : auth.warn('ไม่พบบัญชืดังกล่าว', context);
+                  }),
+              RaisedButton(
+                  child: Text('Sign In with phone'),
+                  onPressed: () async {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => PhoneSumbit(login: true)));
+                  }),
+              RaisedButton(
+                  child: Text('Sign Up'),
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => SignUp()));
+                  }),
+              RaisedButton(
+                  child: Text('Sign Out'),
+                  onPressed: () {
+                    auth.signOut();
+                  })
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // var resault =
-          //     await geo.getAddress(Location(lat: 7.03348, lng: 100.501725));
-          // print(resault.join(' '));
-          var ref2 = Firestore.instance
-              .collection('Regions')
-              .document('scraps')
-              .collection('TH')
-              .document('1TNCQlsnOqKhGdvNQMLf');
-
-          // Firestore.instance
-          //     .collection(ref2)
-          //     .getDocuments()
-          //     .then((value) => print(value));
-          // Firestore.instance.runTransaction((trac) {
-          //   return trac.update(ref2, {'map.inMap': FieldValue.increment(1)});
-          // }).then((value) => print('fin'));
-          // var batch = Firestore.instance.batch();
-
-          // var ref = Firestore.instance
-          //     .collection('Regions')
-          //     .document('scraps')
-          //     .collection('TH')
-          //     .document('songkhla');
-          // batch.updateData(ref2, {'id': 'test2'});
-          // batch.updateData(ref, {'id': 'test'});
-          // await batch.commit();
-          // print('end');
-          // .firestore
-          // .collectionGroup('scraps')
-          // .getDocuments()
-          // .then((docs) => docs.documents
-          //     .forEach((element) => print(element['text'])));
-        },
+        onPressed: () {},
         tooltip: 'Increment',
         child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
+  }
+
+  signIn() {
+    password == user['password']
+        ? auth.signInWithPenName(
+            phone: user['phone'], password: user['password'])
+        : auth.warn('ตรวจสอบรหัสผ่าน', context);
+  }
+
+  Future<bool> hasAccount() async {
+    var doc = await Firestore.instance
+        .collection('Account')
+        .where('pName', isEqualTo: pName)
+        .limit(1)
+        .getDocuments();
+    if (doc.documents.length > 0) user = doc.documents[0];
+    return doc.documents.length > 0;
+  }
+
+  String readTimestamp(Timestamp timestamp) {
+    var now = DateTime.now();
+    var format = DateFormat('HH:mm a');
+    var date = timestamp.toDate();
+    var diff = now.difference(date);
+    var time = '';
+
+    if (diff.inDays < 1) {
+      if (diff.inMinutes <= 30) {
+        time = 'เมื่อไม่นานมานี้';
+      } else if (diff.inMinutes < 60) {
+        time = 'เมื่อ ' + diff.inMinutes.toString() + 'นาที ที่แล้ว';
+      } else {
+        time = 'เมื่อ ' + diff.inHours.toString() + 'ชั่วโมง ที่แล้ว';
+      }
+    } else if (diff.inDays < 7) {
+      diff.inDays == 1
+          ? time = 'เมื่อวานนี้'
+          : time = diff.inDays.toString() + ' วันที่แล้ว';
+    } else {
+      diff.inDays == 7 ? time = 'สัปดาที่แล้ว' : time = format.format(date);
+    }
+    return time;
   }
 }
