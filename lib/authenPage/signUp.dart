@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:scrap_sandbox/authenPage/PhoneSumbit.dart';
 import 'package:scrap_sandbox/functions/authen.dart';
+import 'package:scrap_sandbox/provider/authen_prov.dart';
 
 class SignUp extends StatefulWidget {
   @override
@@ -10,9 +12,10 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   var _key = GlobalKey<FormState>();
   var auth = AuthFunc();
-  String pName, password;
   @override
   Widget build(BuildContext context) {
+    final authenInfo = Provider.of<AuthenProv>(context);
+
     return Scaffold(
       body: Center(
         child: Form(
@@ -23,13 +26,13 @@ class _SignUpState extends State<SignUp> {
               TextFormField(
                 decoration: InputDecoration(hintText: 'Pen Name'),
                 onSaved: (val) {
-                  pName = val;
+                  authenInfo.pName = val;
                 },
               ),
               TextFormField(
                 decoration: InputDecoration(hintText: 'Password'),
                 onSaved: (val) {
-                  password = val;
+                  authenInfo.password = val;
                 },
               ),
               RaisedButton(
@@ -46,7 +49,8 @@ class _SignUpState extends State<SignUp> {
   }
 
   Future<bool> checkAlreadyuse() async {
-    bool usedName = await auth.hasAccount('penName', pName);
+    final authenInfo = Provider.of<AuthenProv>(context);
+    bool usedName = await auth.hasAccount('penName', authenInfo.pName );
     if (usedName) auth.warn('ชื่อซ้ำ', context);
     return usedName;
   }
