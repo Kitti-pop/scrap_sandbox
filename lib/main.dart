@@ -3,22 +3,29 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mapbox_search/mapbox_search.dart';
+import 'package:provider/provider.dart';
 import 'package:scrap_sandbox/authenPage/PhoneSumbit.dart';
 import 'package:scrap_sandbox/authenPage/signUp.dart';
 import 'package:scrap_sandbox/functions/authen.dart';
 import 'package:scrap_sandbox/profile.dart';
+import 'package:scrap_sandbox/provider/authen_prov.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AuthenProv>.value(value: AuthenProv()),
+          ],
+          child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: MyHomePage(title: 'Flutter Demo Home Page'),
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }

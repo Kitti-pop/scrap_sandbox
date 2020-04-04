@@ -5,7 +5,9 @@ import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:flutter_twitter_login/flutter_twitter_login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:provider/provider.dart';
 import 'package:scrap_sandbox/authenPage/OTPScreen.dart';
+import 'package:scrap_sandbox/provider/authen_prov.dart';
 
 final fs = Firestore.instance;
 final fireAuth = FirebaseAuth.instance;
@@ -53,20 +55,17 @@ class AuthFunc {
 
   Future<void> phoneVerified(String phone, BuildContext context,
       {bool login = false}) async {
-    String verifiedid;
+    final authenInfo = Provider.of<AuthenProv>(context);
     final PhoneCodeAutoRetrievalTimeout autoRetrieval = (String id) {
       print(id);
     };
     final PhoneCodeSent smsCode = (String id, [int resendCode]) {
-      verifiedid = id;
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  OTPScreen(phone: phone, verifiedID: id, login: login)));
+      authenInfo.verificationID = id;
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => OTPScreen(login: login)));
     };
     final PhoneVerificationCompleted success = (AuthCredential credent) async {
-      verifiedid != null ? print('use OTP') : print('succese');
+      authenInfo.verificationID != null ? print('use OTP') : print('succese');
     };
     PhoneVerificationFailed failed = (AuthException error) {
       print('error');

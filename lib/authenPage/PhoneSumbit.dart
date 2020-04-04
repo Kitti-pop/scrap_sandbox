@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:scrap_sandbox/functions/authen.dart';
+import 'package:scrap_sandbox/provider/authen_prov.dart';
 
 class PhoneSumbit extends StatefulWidget {
   final bool login;
@@ -9,11 +11,11 @@ class PhoneSumbit extends StatefulWidget {
 }
 
 class _PhoneSumbitState extends State<PhoneSumbit> {
-  String phone;
   var _key = GlobalKey<FormState>();
   var auth = AuthFunc();
   @override
   Widget build(BuildContext context) {
+    final authenInfo = Provider.of<AuthenProv>(context);
     return Scaffold(
       body: Center(
         child: Form(
@@ -24,7 +26,7 @@ class _PhoneSumbitState extends State<PhoneSumbit> {
               TextFormField(
                   decoration: InputDecoration(hintText: 'Phone'),
                   onSaved: (val) {
-                    phone = val;
+                    authenInfo.phone = val;
                   }),
               RaisedButton(
                   child: Text('submit'),
@@ -40,14 +42,16 @@ class _PhoneSumbitState extends State<PhoneSumbit> {
   }
 
   login() async {
-    await auth.hasAccount('phone', phone)
-        ? auth.phoneVerified(phone, context, login: true)
+    final authenInfo = Provider.of<AuthenProv>(context);
+    await auth.hasAccount('phone', authenInfo.phone)
+        ? auth.phoneVerified(authenInfo.phone, context, login: true)
         : auth.warn('ไม่พบบัญชีดังกล่าว', context);
   }
 
   register() async {
-    await auth.hasAccount('phone', phone)
+    final authenInfo = Provider.of<AuthenProv>(context);
+    await auth.hasAccount('phone', authenInfo.phone)
         ? auth.warn('เบอร์ซ้ำ', context)
-        : auth.phoneVerified(phone, context);
+        : auth.phoneVerified(authenInfo.phone, context);
   }
 }
