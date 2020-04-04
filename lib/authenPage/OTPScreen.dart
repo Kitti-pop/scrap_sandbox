@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:scrap_sandbox/functions/authen.dart';
+import 'package:scrap_sandbox/provider/authen_prov.dart';
 
 class OTPScreen extends StatefulWidget {
-  final String phone;
-  final String verifiedID;
   final bool login;
-  OTPScreen(
-      {@required this.phone, @required this.verifiedID, this.login = false});
+  OTPScreen({this.login = false});
   @override
   _OTPScreenState createState() => _OTPScreenState();
 }
@@ -14,9 +13,10 @@ class OTPScreen extends StatefulWidget {
 class _OTPScreenState extends State<OTPScreen> {
   var auth = AuthFunc();
   var _key = GlobalKey<FormState>();
-  String otp;
+
   @override
   Widget build(BuildContext context) {
+    final authenInfo = Provider.of<AuthenProv>(context);
     return Scaffold(
       body: Center(
         child: Form(
@@ -28,7 +28,7 @@ class _OTPScreenState extends State<OTPScreen> {
               TextFormField(
                   decoration: InputDecoration(hintText: 'OTP'),
                   onSaved: (val) {
-                    otp = val;
+                    authenInfo.otp = val;
                   }),
               RaisedButton(
                   child: Text('verified'),
@@ -44,18 +44,20 @@ class _OTPScreenState extends State<OTPScreen> {
   }
 
   login() async {
+    final authenInfo = Provider.of<AuthenProv>(context);
     await auth.signInWithPhone(context,
-        verificationId: widget.verifiedID, smsCode: otp);
+        verificationId: authenInfo.verificationID, smsCode: authenInfo.otp);
   }
 
   register() async {
+    final authenInfo = Provider.of<AuthenProv>(context);
     String uid = await auth.signUpWithPhone(context,
-        verificationId: widget.verifiedID,
-        smsCode: otp,
-        phone: widget.phone,
-        password: '123456',
-        pName: 'ou',
-        region: 'th');
+        verificationId: authenInfo.verificationID,
+        smsCode: authenInfo.otp,
+        phone: authenInfo.phone,
+        password: authenInfo.password,
+        pName: authenInfo.pName,
+        region: authenInfo.region);
     if (uid != null) print(uid);
   }
 }

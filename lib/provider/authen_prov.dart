@@ -3,26 +3,22 @@ import 'package:flutter/widgets.dart';
 
 class AuthenProv extends ChangeNotifier{
   String _verificationID = "";
-  String _smsCode = "";
+
   String _phone = "";
   String _password = "";
   String _pName = "";
   String _region = "";
+  String _otp = "";
 
   String get verificationID => _verificationID;
-  String get smsCode => _smsCode;
   String get phone => _phone;
   String get password => _password;
   String get pName => _pName;
   String get region => _region;
+  String get otp => _otp;
 
   set verificationID(String val){
     _verificationID = val;
-    notifyListeners();
-  }
-
-  set smsCode(String val){
-    _smsCode = val;
     notifyListeners();
   }
 
@@ -45,5 +41,11 @@ class AuthenProv extends ChangeNotifier{
     _region = val;
     notifyListeners();
   }
+
+  set otp(String val){
+    _otp = val;
+    notifyListeners();
+  }
+
 
 }

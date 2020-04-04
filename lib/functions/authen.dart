@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:scrap_sandbox/authenPage/OTPScreen.dart';
+import 'package:scrap_sandbox/provider/authen_prov.dart';
 
 class AuthFunc {
   var fs = Firestore.instance;
@@ -39,14 +41,13 @@ class AuthFunc {
         });
   }
 
-  Future<void> phoneVerified(String phone, BuildContext context,
-      {bool login = false}) async {
-    String verifiedid;
+  Future<void> phoneVerified(String phone, BuildContext context,{bool login = false}) async {
+  final authenInfo = Provider.of<AuthenProv>(context);
     final PhoneCodeAutoRetrievalTimeout autoRetrieval = (String id) {
       print(id);
     };
     final PhoneCodeSent smsCode = (String id, [int resendCode]) {
-      verifiedid = id;
+      authenInfo.verificationID = id;
       Navigator.push(
           context,
           MaterialPageRoute(
@@ -54,7 +55,7 @@ class AuthFunc {
                   OTPScreen(phone: phone, verifiedID: id, login: login)));
     };
     final PhoneVerificationCompleted success = (AuthCredential credent) async {
-      verifiedid != null ? print('use OTP') : print('succese');
+      authenInfo.verificationID  != null ? print('use OTP') : print('succese');
     };
     PhoneVerificationFailed failed = (AuthException error) {
       print('error');
