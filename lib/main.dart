@@ -6,6 +6,7 @@ import 'package:mapbox_search/mapbox_search.dart';
 import 'package:scrap_sandbox/authenPage/PhoneSumbit.dart';
 import 'package:scrap_sandbox/authenPage/signUp.dart';
 import 'package:scrap_sandbox/functions/authen.dart';
+import 'package:scrap_sandbox/profile.dart';
 
 void main() => runApp(MyApp());
 
@@ -31,6 +32,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String pName, password;
+  bool loading = false;
   var auth = AuthFunc();
   var _key = GlobalKey<FormState>();
   DocumentSnapshot user;
@@ -47,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    auth.load.listen((value) => setState(() => loading = value));
     super.initState();
   }
 
@@ -62,62 +65,96 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Form(
-          key: _key,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              TextFormField(
-                decoration: InputDecoration(hintText: 'Pen Name'),
-                onSaved: (val) {
-                  pName = val;
-                },
+      body: Stack(
+        children: <Widget>[
+          Center(
+            child: Form(
+              key: _key,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  TextFormField(
+                    decoration: InputDecoration(hintText: 'Pen Name'),
+                    onSaved: (val) {
+                      pName = val;
+                    },
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(hintText: 'Password'),
+                    onSaved: (val) {
+                      password = val;
+                    },
+                  ),
+                  RaisedButton(
+                      child: Text('Sign In'),
+                      onPressed: () async {
+                        _key.currentState.save();
+                        await hasAccount()
+                            ? signIn()
+                            : auth.warn('ไม่พบบัญชืดังกล่าว', context);
+                      }),
+                  RaisedButton(
+                      child: Text('Sign In with phone'),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    PhoneSumbit(login: true)));
+                      }),
+                  RaisedButton(
+                      child: Text('Sign In with Facebook'),
+                      onPressed: () {
+                        auth.signInWithFacebook();
+                      }),
+                  RaisedButton(
+                      child: Text('Sign In with Google'),
+                      onPressed: () {
+                        auth.signInWithGoogle();
+                      }),
+                  RaisedButton(
+                      child: Text('Sign Up'),
+                      onPressed: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => SignUp()));
+                      }),
+                  RaisedButton(
+                      child: Text('Sign Out'),
+                      onPressed: () {
+                        auth.signOut();
+                      }),
+                  RaisedButton(
+                    child: Text('check isLogin?'),
+                    onPressed: getUid,
+                  )
+                ],
               ),
-              TextFormField(
-                decoration: InputDecoration(hintText: 'Password'),
-                onSaved: (val) {
-                  password = val;
-                },
-              ),
-              RaisedButton(
-                  child: Text('Sign In'),
-                  onPressed: () async {
-                    _key.currentState.save();
-                    await hasAccount()
-                        ? signIn()
-                        : auth.warn('ไม่พบบัญชืดังกล่าว', context);
-                  }),
-              RaisedButton(
-                  child: Text('Sign In with phone'),
-                  onPressed: () async {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => PhoneSumbit(login: true)));
-                  }),
-              RaisedButton(
-                  child: Text('Sign Up'),
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => SignUp()));
-                  }),
-              RaisedButton(
-                  child: Text('Sign Out'),
-                  onPressed: () {
-                    auth.signOut();
-                  }),
-              RaisedButton(
-                child: Text('check isLogin?'),
-                onPressed: getUid,
-              )
-            ],
+            ),
           ),
-        ),
+          loading
+              ? Center(
+                  child: Container(
+                      width: 81,
+                      height: 81,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                          color: Colors.blue[300],
+                          borderRadius: BorderRadius.circular(6)),
+                      child: Theme(
+                        data: Theme.of(context)
+                            .copyWith(accentColor: Colors.white),
+                        child: CircularProgressIndicator(),
+                      )),
+                )
+              : SizedBox()
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        tooltip: 'Increment',
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => Profile()));
+        },
+        tooltip: 'check auth',
         child: Icon(Icons.add),
       ),
     );

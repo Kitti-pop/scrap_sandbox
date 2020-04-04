@@ -1,11 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:flutter_twitter_login/flutter_twitter_login.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:rxdart/subjects.dart';
 import 'package:scrap_sandbox/authenPage/OTPScreen.dart';
 
+final fs = Firestore.instance;
+final fireAuth = FirebaseAuth.instance;
+final fbSign = FacebookLogin();
+final ggSign = GoogleSignIn();
+final twSign = TwitterLogin(
+  consumerKey: '',
+  consumerSecret: '',
+);
+
 class AuthFunc {
-  var fs = Firestore.instance;
-  var fa = FirebaseAuth.instance;
+  PublishSubject<bool> load = PublishSubject();
 
   Future<bool> hasAccount(String key, dynamic value) async {
     var doc = await fs
@@ -59,7 +71,7 @@ class AuthFunc {
     PhoneVerificationFailed failed = (AuthException error) {
       print('error');
     };
-    await fa
+    await fireAuth
         .verifyPhoneNumber(
             phoneNumber: '+66' + phone,
             timeout: Duration(seconds: 120),
@@ -80,11 +92,12 @@ class AuthFunc {
       @required String password,
       @required String pName}) async {
     String uid;
+    load.add(true);
     var phoneCredent = PhoneAuthProvider.getCredential(
         verificationId: verificationId, smsCode: smsCode);
     var emailCredent = EmailAuthProvider.getCredential(
         email: phone + '@gmail.com', password: password);
-    await fa.signInWithCredential(phoneCredent).then((authResult) async {
+    await fireAuth.signInWithCredential(phoneCredent).then((authResult) async {
       uid = authResult.user?.uid ?? null;
       authResult.user.linkWithCredential(emailCredent);
       await fs.collection('Account').document(uid).setData({
@@ -95,7 +108,9 @@ class AuthFunc {
         'phone': phone
       });
       print('link fin');
+      load.add(false);
     }).catchError((e) {
+      load.add(false);
       switch (e.code) {
         case 'ERROR_NETWORK_REQUEST_FAILED':
           warn('ตรวจสอบการเชื่อมต่อ', context);
@@ -115,7 +130,7 @@ class AuthFunc {
       {@required String verificationId, @required String smsCode}) {
     var credent = PhoneAuthProvider.getCredential(
         verificationId: verificationId, smsCode: smsCode);
-    fa.signInWithCredential(credent).then((value) {}).catchError((e) {
+    fireAuth.signInWithCredential(credent).then((value) {}).catchError((e) {
       switch (e.code) {
         case 'ERROR_NETWORK_REQUEST_FAILED':
           warn('ตรวจสอบการเชื่อมต่อ', context);
@@ -131,11 +146,64 @@ class AuthFunc {
   }
 
   signInWithPenName({@required String phone, @required String password}) {
-    fa.signInWithEmailAndPassword(
+    fireAuth.signInWithEmailAndPassword(
         email: phone + '@gmail.com', password: password);
   }
 
   signOut() async {
-    await fa.signOut();
+    load.add(true);
+    await fireAuth.signOut();
+    load.add(false);
+  }
+
+  signInWithFacebook() async {
+    load.add(true);
+    var fbLogin = await fbSign.logIn(['email', 'public_profile']);
+    switch (fbLogin.status) {
+      case FacebookLoginStatus.loggedIn:
+        var fbCredent = FacebookAuthProvider.getCredential(
+            accessToken: fbLogin.accessToken.token);
+        await fireAuth.signInWithCredential(fbCredent);
+        print('face fin');
+        load.add(false);
+        break;
+      default:
+        print('something wrong');
+        load.add(false);
+        break;
+    }
+  }
+
+  signInWithTwitter() async {
+    load.add(true);
+    var user = await twSign.authorize();
+    switch (user.status) {
+      case TwitterLoginStatus.loggedIn:
+        var twCredent = TwitterAuthProvider.getCredential(
+            authToken: user.session.token,
+            authTokenSecret: user.session.secret);
+        await fireAuth.signInWithCredential(twCredent);
+        print('twit fin');
+        load.add(false);
+        break;
+      default:
+        print('something wrong');
+        load.add(false);
+        break;
+    }
+  }
+
+  signInWithGoogle() async {
+    load.add(true);
+    try {
+      GoogleSignInAccount account = await ggSign.signIn();
+      GoogleSignInAuthentication user = await account.authentication;
+      var ggCredent = GoogleAuthProvider.getCredential(
+          idToken: user.idToken, accessToken: user.accessToken);
+      await fireAuth.signInWithCredential(ggCredent);
+    } catch (e) {
+      print(e);
+    }
+    load.add(false);
   }
 }
