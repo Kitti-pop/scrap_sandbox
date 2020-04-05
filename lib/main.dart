@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,14 +14,16 @@ import 'package:scrap_sandbox/provider/authen_prov.dart';
 
 void main() => runApp(MyApp());
 
+var auth = AuthFunc();
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-          providers: [
-            ChangeNotifierProvider<AuthenProv>.value(value: AuthenProv()),
-          ],
-          child: MaterialApp(
+      providers: [
+        ChangeNotifierProvider<AuthenProv>.value(value: AuthenProv()),
+      ],
+      child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
           primarySwatch: Colors.blue,
@@ -38,11 +42,63 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  FirebaseUser user;
+  StreamSubscription userStatus;
+
+  @override
+  void initState() {
+    userStatus = auth.user.listen((event) => setState(() => user = event));
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    userStatus.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return user != null ? Profile() : AuthenPage();
+  }
+
+  String readTimestamp(Timestamp timestamp) {
+    var now = DateTime.now();
+    var format = DateFormat('HH:mm a');
+    var date = timestamp.toDate();
+    var diff = now.difference(date);
+    var time = '';
+
+    if (diff.inDays < 1) {
+      if (diff.inMinutes <= 30) {
+        time = 'เมื่อไม่นานมานี้';
+      } else if (diff.inMinutes < 60) {
+        time = 'เมื่อ ' + diff.inMinutes.toString() + 'นาที ที่แล้ว';
+      } else {
+        time = 'เมื่อ ' + diff.inHours.toString() + 'ชั่วโมง ที่แล้ว';
+      }
+    } else if (diff.inDays < 7) {
+      diff.inDays == 1
+          ? time = 'เมื่อวานนี้'
+          : time = diff.inDays.toString() + ' วันที่แล้ว';
+    } else {
+      diff.inDays == 7 ? time = 'สัปดาที่แล้ว' : time = format.format(date);
+    }
+    return time;
+  }
+}
+
+class AuthenPage extends StatefulWidget {
+  @override
+  _AuthenPageState createState() => _AuthenPageState();
+}
+
+class _AuthenPageState extends State<AuthenPage> {
   String pName, password;
   bool loading = false;
-  var auth = AuthFunc();
   var _key = GlobalKey<FormState>();
   DocumentSnapshot user;
+  StreamSubscription loadStatus;
   var doc;
   var ref2 = Firestore.instance
       .collection('Scraps')
@@ -53,24 +109,23 @@ class _MyHomePageState extends State<MyHomePage> {
     apiKey:
         'pk.eyJ1Ijoic2NyYXAtZGV2IiwiYSI6ImNrN3psdGZnYzA1cmkzZG80YjgyenYzZXYifQ.mGLyQ9BgHoiaBVpJOkEw1g',
   );
-
   @override
   void initState() {
-    auth.load.listen((value) => setState(() => loading = value));
+    loadStatus = auth.load.listen((value) => setState(() => loading = value));
     super.initState();
   }
 
-  getUid() async {
-    var uid = await FirebaseAuth.instance.currentUser();
-    print(uid != null ? 'login' : 'not login');
-    print(uid?.uid ?? 'nope');
+  @override
+  void dispose() {
+    loadStatus.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text('test authen'),
       ),
       body: Stack(
         children: <Widget>[
@@ -95,6 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   RaisedButton(
                       child: Text('Sign In'),
                       onPressed: () async {
+                        auth.load.add(true);
                         _key.currentState.save();
                         await hasAccount()
                             ? signIn()
@@ -124,11 +180,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () {
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) => SignUp()));
-                      }),
-                  RaisedButton(
-                      child: Text('Sign Out'),
-                      onPressed: () {
-                        auth.signOut();
                       }),
                   RaisedButton(
                     child: Text('check isLogin?'),
@@ -167,10 +218,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  getUid() async {
+    var uid = await FirebaseAuth.instance.currentUser();
+    print(uid != null ? 'login' : 'not login');
+    print(uid?.uid ?? 'nope');
+  }
+
   signIn() {
     password == user['password']
         ? auth.signInWithPenName(
-            phone: user['phone'], password: user['password'])
+            email: user['email'], password: user['password'])
         : auth.warn('ตรวจสอบรหัสผ่าน', context);
   }
 
@@ -182,30 +239,5 @@ class _MyHomePageState extends State<MyHomePage> {
         .getDocuments();
     if (doc.documents.length > 0) user = doc.documents[0];
     return doc.documents.length > 0;
-  }
-
-  String readTimestamp(Timestamp timestamp) {
-    var now = DateTime.now();
-    var format = DateFormat('HH:mm a');
-    var date = timestamp.toDate();
-    var diff = now.difference(date);
-    var time = '';
-
-    if (diff.inDays < 1) {
-      if (diff.inMinutes <= 30) {
-        time = 'เมื่อไม่นานมานี้';
-      } else if (diff.inMinutes < 60) {
-        time = 'เมื่อ ' + diff.inMinutes.toString() + 'นาที ที่แล้ว';
-      } else {
-        time = 'เมื่อ ' + diff.inHours.toString() + 'ชั่วโมง ที่แล้ว';
-      }
-    } else if (diff.inDays < 7) {
-      diff.inDays == 1
-          ? time = 'เมื่อวานนี้'
-          : time = diff.inDays.toString() + ' วันที่แล้ว';
-    } else {
-      diff.inDays == 7 ? time = 'สัปดาที่แล้ว' : time = format.format(date);
-    }
-    return time;
   }
 }

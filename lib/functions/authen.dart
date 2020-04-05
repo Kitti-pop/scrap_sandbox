@@ -20,7 +20,7 @@ final twSign = TwitterLogin(
 
 class AuthFunc {
   PublishSubject<bool> load = PublishSubject();
-
+  Stream<FirebaseUser> user = fireAuth.onAuthStateChanged;
   Future<bool> hasAccount(String key, dynamic value) async {
     var doc = await fs
         .collection('Account')
@@ -31,6 +31,7 @@ class AuthFunc {
   }
 
   warn(String warning, BuildContext context) {
+    load.add(false);
     showDialog(
         context: context,
         builder: (context) {
@@ -144,9 +145,9 @@ class AuthFunc {
     });
   }
 
-  signInWithPenName({@required String phone, @required String password}) {
-    fireAuth.signInWithEmailAndPassword(
-        email: phone + '@gmail.com', password: password);
+  signInWithPenName({@required String email, @required String password}) async {
+    await fireAuth.signInWithEmailAndPassword(email: email, password: password);
+    load.add(false);
   }
 
   signOut() async {

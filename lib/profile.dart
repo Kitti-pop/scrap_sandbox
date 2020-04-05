@@ -41,7 +41,9 @@ class _ProfileState extends State<Profile> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       ClipRRect(
-                        child: Image.network(user.photoUrl,
+                        child: Image.network(
+                            user?.photoUrl ??
+                                'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
                             width: scr.width / 3,
                             height: scr.width / 3,
                             fit: BoxFit.cover),
@@ -51,10 +53,15 @@ class _ProfileState extends State<Profile> {
                         height: scr.height / 32,
                       ),
                       Text(
-                        user.displayName,
+                        user?.displayName ?? 'ไม่มี',
                         style: TextStyle(
                             fontSize: scr.width / 16, color: Colors.white),
-                      )
+                      ),
+                      RaisedButton(
+                          child: Text('Sign Out'),
+                          onPressed: () {
+                            fireAuth.signOut();
+                          }),
                     ],
                   ),
       ),
