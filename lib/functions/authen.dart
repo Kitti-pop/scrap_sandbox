@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:provider/provider.dart';
 import 'package:scrap_sandbox/authenPage/OTPScreen.dart';
+import 'package:scrap_sandbox/main.dart';
 import 'package:scrap_sandbox/provider/authen_prov.dart';
 
 final fs = Firestore.instance;
@@ -56,12 +57,13 @@ class AuthFunc {
 
   Future<void> phoneVerified(String phone, BuildContext context,
       {bool login = false}) async {
-    final authenInfo = Provider.of<AuthenProv>(context);
+    final authenInfo = Provider.of<AuthenProv>(context, listen: false);
     final PhoneCodeAutoRetrievalTimeout autoRetrieval = (String id) {
       print(id);
     };
     final PhoneCodeSent smsCode = (String id, [int resendCode]) {
       authenInfo.verificationID = id;
+      load.add(false);
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => OTPScreen(login: login)));
     };
@@ -110,7 +112,6 @@ class AuthFunc {
       print('link fin');
       load.add(false);
     }).catchError((e) {
-      load.add(false);
       switch (e.code) {
         case 'ERROR_NETWORK_REQUEST_FAILED':
           warn('ตรวจสอบการเชื่อมต่อ', context);
@@ -123,14 +124,17 @@ class AuthFunc {
           break;
       }
     });
+
     return uid;
   }
 
   signInWithPhone(BuildContext context,
-      {@required String verificationId, @required String smsCode}) {
+      {@required String verificationId, @required String smsCode}) async {
     var credent = PhoneAuthProvider.getCredential(
         verificationId: verificationId, smsCode: smsCode);
-    fireAuth.signInWithCredential(credent).then((value) {}).catchError((e) {
+    await fireAuth.signInWithCredential(credent).then((value) {
+      load.add(false);
+    }).catchError((e) {
       switch (e.code) {
         case 'ERROR_NETWORK_REQUEST_FAILED':
           warn('ตรวจสอบการเชื่อมต่อ', context);
@@ -150,9 +154,11 @@ class AuthFunc {
     load.add(false);
   }
 
-  signOut() async {
+  signOut(BuildContext context) async {
     load.add(true);
     await fireAuth.signOut();
+    Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (BuildContext context) => MyHomePage()));
     load.add(false);
   }
 

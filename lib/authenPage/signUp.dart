@@ -15,7 +15,6 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     final authenInfo = Provider.of<AuthenProv>(context);
-
     return Scaffold(
       body: Center(
         child: Form(
@@ -49,8 +48,8 @@ class _SignUpState extends State<SignUp> {
   }
 
   Future<bool> checkAlreadyuse() async {
-    final authenInfo = Provider.of<AuthenProv>(context);
-    bool usedName = await auth.hasAccount('penName', authenInfo.pName );
+    final authenInfo = Provider.of<AuthenProv>(context, listen: false);
+    bool usedName = await auth.hasAccount('pName', authenInfo.pName);
     if (usedName) auth.warn('ชื่อซ้ำ', context);
     return usedName;
   }

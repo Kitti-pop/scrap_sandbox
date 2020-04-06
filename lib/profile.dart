@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scrap_sandbox/functions/authen.dart';
+import 'package:scrap_sandbox/main.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -60,7 +61,7 @@ class _ProfileState extends State<Profile> {
                       RaisedButton(
                           child: Text('Sign Out'),
                           onPressed: () {
-                            fireAuth.signOut();
+                            auth.signOut(context);
                           }),
                     ],
                   ),
