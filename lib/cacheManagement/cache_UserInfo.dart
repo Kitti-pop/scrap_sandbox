@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CacheUserInfo {
@@ -10,6 +11,12 @@ class CacheUserInfo {
   bool fileExists = false;
   Map<String, String > fileContent;
 
+  String uid = getUid();
+
+   getUid() async {
+    var uid = await FirebaseAuth.instance.currentUser();
+    return uid.uid;
+  }
 
   hasFile() async {
   Directory _directory = await getApplicationDocumentsDirectory();
@@ -17,6 +24,12 @@ class CacheUserInfo {
   fileExists = jsonFile.existsSync();
   return fileExists;
   }
+
+  getUserInfo(){
+    fileContent = jsonDecode(jsonFile.readAsStringSync());
+    return fileContent;
+  }
+
 
   newFileUserInfo(){
     Map<String,String> _content;
@@ -39,11 +52,7 @@ class CacheUserInfo {
     
     jsonFile.createSync();
     jsonFile.writeAsStringSync(jsonEncode(_content));
-  }
-
-  getUserInfo(){
-    fileContent = jsonDecode(jsonFile.readAsStringSync());
-    return fileContent;
+    getUserInfo();
   }
 
   //first call func---------------------------
